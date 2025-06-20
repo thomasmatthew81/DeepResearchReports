@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Report: AI Agent Frameworks for the Enterprise</title>
+    <!-- Chosen Palette: Enterprise Clarity -->
+    <!-- Application Structure Plan: A dashboard-style, single-page application designed for non-linear exploration. The structure prioritizes user-driven comparison over the linear format of the source report. It begins with a high-level overview and the top recommendation, followed by an interactive "Side-by-Side Comparison" dashboard where users select a criterion (e.g., 'Stability', 'OTEL Support') to dynamically update content and charts for all four frameworks. This is followed by optional "Deep Dive" sections for each framework and concludes with the detailed "Final Recommendation" matrix. This structure was chosen because enterprise decision-makers often need to compare specific features directly rather than reading a full document. The interactive dashboard facilitates this targeted analysis, making the information more accessible and actionable. -->
+    <!-- Visualization & Content Choices: The application uses a mix of presentation methods to achieve different goals, all without SVG or Mermaid JS. Goal: Inform -> High-level scores are shown with a bar chart (Chart.js) for quick visual assessment. Goal: Compare -> The core interactive feature uses a four-column layout updated via JS to show qualitative text, side-by-side. This is paired with dynamic bar charts (Chart.js) to compare quantitative data like GitHub community stats. Goal: Organize -> Detailed information is presented in clean, well-structured HTML sections. The final decision matrix is a styled HTML table for clarity and accessibility. Interaction: All major interactions (navigation, tab-switching) are handled by vanilla JS to dynamically update the DOM, providing a fluid single-page experience. These choices make complex data digestible and support the user-centric, comparison-driven application structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .nav-link {
+            transition: color 0.3s ease, border-bottom-color 0.3s ease;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+        .criterion-btn {
+            transition: all 0.3s ease;
+        }
+        .criterion-btn.active {
+            background-color: #2563eb;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card {
+             background-color: white;
+             border-radius: 0.75rem;
+             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+             transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold text-blue-600">Framework Analysis</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 border-b-2 border-transparent">Overview</a>
+                        <a href="#comparison" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 border-b-2 border-transparent">Comparison</a>
+                        <a href="#deep-dive" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 border-b-2 border-transparent">Deep Dive</a>
+                        <a href="#recommendation" class="nav-link px-3 py-2 text-sm font-medium text-gray-600 border-b-2 border-transparent">Recommendation</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="overview" class="py-16 sm:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
+                    AI Agent Frameworks for the Enterprise
+                </h1>
+                <p class="mt-6 max-w-2xl mx-auto text-lg text-gray-600">
+                    An interactive guide to choosing the right framework for your enterprise needs, based on a comprehensive analysis of stability, features, and observability.
+                </p>
+                <div class="mt-12">
+                    <div class="inline-block bg-blue-100 text-blue-800 rounded-full px-6 py-3 text-base font-semibold">
+                        Top Recommendation: <span class="font-bold">LangGraph</span>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Final Scores at a Glance</h2>
+                    <p class="mt-4 max-w-xl mx-auto text-md text-gray-600">Based on a weighted evaluation across nine enterprise criteria, LangGraph emerges as the clear leader.</p>
+                    <div class="mt-8 chart-container">
+                        <canvas id="overviewScoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison" class="py-16 sm:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Side-by-Side Comparison</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
+                        Select a criterion to compare the frameworks directly. This interactive view helps you focus on the features that matter most to your organization.
+                    </p>
+                </div>
+                
+                <div class="mt-12 flex flex-wrap justify-center gap-2 sm:gap-4">
+                    <button class="criterion-btn active px-4 py-2 text-sm sm:text-base font-medium rounded-md bg-white text-gray-700 shadow-sm border border-gray-200" data-criterion="stability">Stability & Maturity</button>
+                    <button class="criterion-btn px-4 py-2 text-sm sm:text-base font-medium rounded-md bg-white text-gray-700 shadow-sm border border-gray-200" data-criterion="community">Community & Docs</button>
+                    <button class="criterion-btn px-4 py-2 text-sm sm:text-base font-medium rounded-md bg-white text-gray-700 shadow-sm border border-gray-200" data-criterion="state">State Management</button>
+                    <button class="criterion-btn px-4 py-2 text-sm sm:text-base font-medium rounded-md bg-white text-gray-700 shadow-sm border border-gray-200" data-criterion="hitl">Human-in-the-Loop</button>
+                    <button class="criterion-btn px-4 py-2 text-sm sm:text-base font-medium rounded-md bg-white text-gray-700 shadow-sm border border-gray-200" data-criterion="otel">OTEL Integration</button>
+                </div>
+                
+                <div class="mt-12">
+                     <div class="chart-container mb-8">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+
+                    <div id="comparison-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="deep-dive" class="py-16 sm:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Framework Deep Dive</h2>
+                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
+                        Explore the core philosophy, ecosystem, and key characteristics of each framework.
+                    </p>
+                </div>
+                <div id="deep-dive-content" class="mt-12 space-y-12">
+                </div>
+            </div>
+        </section>
+
+        <section id="recommendation" class="py-16 sm:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900">Final Recommendation</h2>
+                     <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
+                        A summary of findings and a detailed scoring matrix to support the final decision.
+                    </p>
+                </div>
+
+                <div class="mt-12 max-w-4xl mx-auto">
+                    <div class="card p-8">
+                        <h3 class="text-2xl font-bold text-gray-900">Concluding Recommendation: LangGraph</h3>
+                        <p class="mt-4 text-gray-600">Based on a comprehensive evaluation against all specified requirements and constraints, **LangGraph** is the recommended framework for adoption. It excels in every critical area for enterprise deployment: production readiness, architectural fit for hybrid systems, native support for essential enterprise features like state management and HITL, and a robust, first-party OpenTelemetry integration that mitigates dependency risk.</p>
+                        <ul class="mt-6 space-y-4 text-gray-600">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 h-6 w-6 text-green-500 font-bold">✔</span>
+                                <span class="ml-3">**Production Ready:** Trusted in production by major tech companies like Klarna and Replit.</span>
+                            </li>
+                            <li class="flex items-start">
+                                 <span class="flex-shrink-0 h-6 w-6 text-green-500 font-bold">✔</span>
+                                <span class="ml-3">**Architectural Fit:** A superior, unified `StateGraph` model for both deterministic workflows and complex agents.</span>
+                            </li>
+                            <li class="flex items-start">
+                                 <span class="flex-shrink-0 h-6 w-6 text-green-500 font-bold">✔</span>
+                                <span class="ml-3">**Enterprise Features:** Strongest native, out-of-the-box support for durable state, HITL, and debugging.</span>
+                            </li>
+                             <li class="flex items-start">
+                                 <span class="flex-shrink-0 h-6 w-6 text-green-500 font-bold">✔</span>
+                                <span class="ml-3">**Observability:** Meets and exceeds the OTEL mandate with a mature and flexible first-party integration.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-16">
+                     <h3 class="text-center text-2xl font-bold text-gray-900">Final Decision Matrix</h3>
+                     <div class="mt-8 flow-root">
+                        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                                    <table class="min-w-full divide-y divide-gray-300">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Criterion</th>
+                                                <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">Autogen</th>
+                                                <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">LangGraph</th>
+                                                <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">Semantic Kernel</th>
+                                                <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900">OpenAI Agents SDK</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="decision-matrix-body" class="divide-y divide-gray-200 bg-white">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200">
+        <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+            <p>Interactive Report generated from "A Comparative Analysis of Agentic AI Frameworks".</p>
+            <p>&copy; 2024 Enterprise AI Strategy Group. All rights reserved.</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const frameworkData = {
+        autogen: {
+            name: "Autogen",
+            color: "#6B8E23",
+            philosophy: "A research-first framework from Microsoft Research to simplify the creation and orchestration of complex, multi-agent conversational systems.",
+            deepDive: {
+                maintainer: "Microsoft Research",
+                abstraction: "Conversable Agent",
+                languages: "Python, .NET",
+                community: "Vibrant MS-backed community with active Discord and GitHub. Documentation is extensive but can be complex for newcomers.",
+                readiness: "In active evolution (v0.4 was a redesign). Its UI, AutoGen Studio, is a 'research prototype' and not for production use.",
+                architecture: "Fundamentally agent-centric, modeling everything as a multi-agent conversation. Workflows are possible but can feel less natural than dedicated workflow abstractions."
+            }
+        },
+        langgraph: {
+            name: "LangGraph",
+            color: "#2563EB",
+            philosophy: "A developer-first, open-source framework from LangChain Inc. for building stateful, cyclical, and long-running agentic applications using a graph-based model.",
+            deepDive: {
+                maintainer: "LangChain Inc.",
+                abstraction: "State Graph",
+                languages: "Python, JS/TS",
+                community: "Leverages the massive LangChain community, arguably the largest in the space. Excellent documentation with many tutorials.",
+                readiness: "Signals strong production readiness (stable v0.1) and is 'trusted in production by companies shaping the future of agents'.",
+                architecture: "Explicitly designed to model processes as directed state graphs. This unified abstraction elegantly represents both deterministic workflows and complex, adaptive agents."
+            }
+        },
+        semantic_kernel: {
+            name: "Semantic Kernel",
+            color: "#A9A9A9",
+            philosophy: "An enterprise-first SDK from Microsoft's product division to integrate LLMs into conventional applications safely and reliably, bridging natural language and native code.",
+             deepDive: {
+                maintainer: "Microsoft",
+                abstraction: "Kernel & Plugins",
+                languages: "C#, Python, Java",
+                community: "Official Microsoft-backed support and documentation. Community engagement on Discord and GitHub. Python SDK can lag behind the flagship .NET version.",
+                readiness: "Reached a stable v1.0 release, committing to API stability and enterprise support. Uses `[Experimental]` tags for new features.",
+                architecture: "Offers the most explicit separation with a dedicated `Process Framework` for workflows and an `Agent Framework` for agents, promoting clear, maintainable architecture."
+            }
+        },
+        openai_agents_sdk: {
+            name: "OpenAI Agents SDK",
+            color: "#D2B48C",
+            philosophy: "A lightweight, minimalist SDK from OpenAI with few abstractions, designed to be easy to learn and 'production-ready' out of the box.",
+            deepDive: {
+                maintainer: "OpenAI",
+                abstraction: "Agent, Handoff, Guardrail",
+                languages: "Python, JS/TS",
+                community: "Centered around the official OpenAI developer forum and GitHub. Documentation is clear and concise, consistent with its minimalist philosophy.",
+                readiness: "Described as a 'production-ready upgrade' of the experimental Swarm project. Minimalist design lends credibility to its readiness.",
+                architecture: "Provides flexible, low-level primitives. The developer is responsible for composing them into workflows or agentic patterns. Highly flexible but less prescriptive."
+            }
+        }
+    };
+
+    const comparisonData = {
+        stability: {
+            title: "Stability & Maturity",
+            chartLabel: "Maturity Score (1-5)",
+            scores: { autogen: 2, langgraph: 5, semantic_kernel: 4, openai_agents_sdk: 3 },
+            content: {
+                autogen: "In active evolution (v0.4 redesign). AutoGen Studio is a 'research prototype,' not for production.",
+                langgraph: "Stable v0.1 release, explicitly 'trusted in production by companies shaping the future of agents.'",
+                semantic_kernel: "Reached v1.0, committing to API stability. Uses `[Experimental]` tags for evolving features.",
+                openai_agents_sdk: "Described as a 'production-ready upgrade' of the prior experimental Swarm project."
+            }
+        },
+        community: {
+            title: "Community & Docs",
+            chartLabel: "GitHub Stars (k)",
+            scores: { autogen: 49.6, langgraph: 110, semantic_kernel: 25.1, openai_agents_sdk: 11.7 },
+             content: {
+                autogen: "Vibrant Microsoft-backed community. Docs are extensive but can be complex. (49.6k+ stars)",
+                langgraph: "Leverages the massive LangChain community, the largest in the space. High-quality docs. (110k+ stars)",
+                semantic_kernel: "Official Microsoft support and professional docs. Python SDK can lag .NET. (25.1k+ stars)",
+                openai_agents_sdk: "Growing community on OpenAI forums. Clear, concise docs. (11.7k+ stars)"
+            }
+        },
+        state: {
+            title: "State Management & Persistence",
+            chartLabel: "Capability Score (1-5)",
+            scores: { autogen: 2, langgraph: 5, semantic_kernel: 3, openai_agents_sdk: 4 },
+            content: {
+                autogen: "Requires custom implementation for durable persistence (e.g., Redis, DB). State managed in conversation history.",
+                langgraph: "First-class feature. Built-in `checkpointer` mechanisms automatically persist state, enabling durable execution.",
+                semantic_kernel: "Handled by the `Process Framework` for workflows. Requires application to manage state for most agent types.",
+                openai_agents_sdk: "Built-in primitive. `RunState` object can be serialized/deserialized, but developer must manage storage."
+            }
+        },
+        hitl: {
+            title: "Human-in-the-Loop (HITL)",
+            chartLabel: "Capability Score (1-5)",
+            scores: { autogen: 3, langgraph: 5, semantic_kernel: 3, openai_agents_sdk: 4 },
+             content: {
+                autogen: "Limited to conversational intervention via `human_input_mode`. Complex approval flows require custom logic.",
+                langgraph: "Core, built-in feature. Any node can `interrupt` the graph, pause execution, and await external input.",
+                semantic_kernel: "Supported by designing processes that wait for external events (e.g., `UserApproved` message). Powerful but complex.",
+                openai_agents_sdk: "Built-in via `needsApproval: true` flag on tools, which automatically interrupts the run for validation."
+            }
+        },
+        otel: {
+            title: "OTEL Integration (First-Party)",
+            chartLabel: "Integration Quality Score (1-5)",
+            scores: { autogen: 4, langgraph: 5, semantic_kernel: 2, openai_agents_sdk: 1 },
+            content: {
+                autogen: "Has documented, first-party support for OpenTelemetry, a strong indicator of enterprise suitability.",
+                langgraph: "Best-in-class, most mature integration. Native OTEL support via the `langsmith` SDK with flexible deployment patterns.",
+                semantic_kernel: "Support is still evolving. Integration is possible but first-party support is less mature than others.",
+                openai_agents_sdk: "Does not emit OTEL data by default. Requires a third-party wrapper (`logfire`), introducing dependency risk."
+            }
+        }
+    };
+    
+    const decisionMatrixData = [
+        { criterion: "Stability & Maturity", scores: { autogen: 2, langgraph: 5, semantic_kernel: 4, openai_agents_sdk: 3 }},
+        { criterion: "Community & Docs", scores: { autogen: 4, langgraph: 5, semantic_kernel: 4, openai_agents_sdk: 3 }},
+        { criterion: "Workflow Flexibility", scores: { autogen: 3, langgraph: 5, semantic_kernel: 5, openai_agents_sdk: 4 }},
+        { criterion: "Agentic Flexibility", scores: { autogen: 5, langgraph: 4, semantic_kernel: 4, openai_agents_sdk: 4 }},
+        { criterion: "State Management", scores: { autogen: 2, langgraph: 5, semantic_kernel: 3, openai_agents_sdk: 4 }},
+        { criterion: "Human-in-the-Loop", scores: { autogen: 3, langgraph: 5, semantic_kernel: 3, openai_agents_sdk: 4 }},
+        { criterion: "Replay & Debugging", scores: { autogen: 2, langgraph: 5, semantic_kernel: 2, openai_agents_sdk: 4 }},
+        { criterion: "OTEL Integration (First-Party)", scores: { autogen: 4, langgraph: 5, semantic_kernel: 2, openai_agents_sdk: 1 }},
+        { criterion: "API Decoupling (Future-Proofing)", scores: { autogen: 5, langgraph: 5, semantic_kernel: 5, openai_agents_sdk: 2 }},
+    ];
+
+    let comparisonChartInstance;
+
+    function renderComparisonContent(criterionKey) {
+        const data = comparisonData[criterionKey];
+        const contentContainer = document.getElementById('comparison-content');
+        contentContainer.innerHTML = '';
+        
+        Object.keys(frameworkData).forEach(key => {
+            const framework = frameworkData[key];
+            const content = data.content[key];
+            const score = data.scores[key];
+
+            const cardHtml = `
+                <div class="card p-6 flex flex-col fade-in">
+                    <h4 class="text-xl font-bold" style="color: ${framework.color};">${framework.name}</h4>
+                    <p class="mt-4 text-gray-600 flex-grow">${content}</p>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                         <span class="text-sm font-semibold text-gray-500">${data.chartLabel}:</span>
+                         <span class="text-lg font-bold" style="color: ${framework.color};">${score}</span>
+                    </div>
+                </div>
+            `;
+            contentContainer.innerHTML += cardHtml;
+        });
+        
+        updateComparisonChart(criterionKey);
+    }
+
+    function updateComparisonChart(criterionKey) {
+        const data = comparisonData[criterionKey];
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        
+        if (comparisonChartInstance) {
+            comparisonChartInstance.destroy();
+        }
+
+        comparisonChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.values(frameworkData).map(f => f.name),
+                datasets: [{
+                    label: data.chartLabel,
+                    data: Object.values(data.scores),
+                    backgroundColor: Object.values(frameworkData).map(f => f.color),
+                    borderColor: Object.values(frameworkData).map(f => f.color),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: data.title,
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#e5e7eb'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderOverviewChart() {
+        const totalScores = decisionMatrixData.reduce((acc, row) => {
+            Object.keys(row.scores).forEach(key => {
+                if (!acc[key]) acc[key] = 0;
+                acc[key] += row.scores[key];
+            });
+            return acc;
+        }, {});
+
+        const ctx = document.getElementById('overviewScoreChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.values(frameworkData).map(f => f.name),
+                datasets: [{
+                    label: 'Total Score',
+                    data: Object.keys(frameworkData).map(key => totalScores[key]),
+                    backgroundColor: Object.values(frameworkData).map(f => f.color),
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { color: '#e5e7eb' } }, x: { grid: { display: false } } }
+            }
+        });
+    }
+
+    function renderDeepDiveContent() {
+        const container = document.getElementById('deep-dive-content');
+        container.innerHTML = '';
+        Object.values(frameworkData).forEach(fw => {
+            const div = document.createElement('div');
+            div.className = 'card p-8';
+            div.innerHTML = `
+                <h3 class="text-2xl font-bold" style="color: ${fw.color};">${fw.name}</h3>
+                <p class="mt-4 text-gray-600 italic">"${fw.philosophy}"</p>
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-700">
+                    <div><strong class="block text-gray-900">Maintainer:</strong> ${fw.deepDive.maintainer}</div>
+                    <div><strong class="block text-gray-900">Core Abstraction:</strong> ${fw.deepDive.abstraction}</div>
+                    <div><strong class="block text-gray-900">Primary Languages:</strong> ${fw.deepDive.languages}</div>
+                    <div class="sm:col-span-2"><strong class="block text-gray-900">Architecture:</strong> ${fw.deepDive.architecture}</div>
+                    <div class="sm:col-span-2"><strong class="block text-gray-900">Community & Docs:</strong> ${fw.deepDive.community}</div>
+                    <div class="sm:col-span-2"><strong class="block text-gray-900">Production Readiness:</strong> ${fw.deepDive.readiness}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    function renderDecisionMatrix() {
+        const tbody = document.getElementById('decision-matrix-body');
+        tbody.innerHTML = '';
+        let totals = { autogen: 0, langgraph: 0, semantic_kernel: 0, openai_agents_sdk: 0 };
+        
+        decisionMatrixData.forEach(row => {
+            const tr = document.createElement('tr');
+            let cells = `<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${row.criterion}</td>`;
+            Object.keys(row.scores).forEach(key => {
+                const score = row.scores[key];
+                totals[key] += score;
+                let colorClass = 'text-gray-500';
+                if (score >= 4) colorClass = 'text-green-600 font-semibold';
+                if (score <= 2) colorClass = 'text-red-600';
+                cells += `<td class="whitespace-nowrap px-3 py-4 text-sm text-center ${colorClass}">${score}</td>`;
+            });
+            tr.innerHTML = cells;
+            tbody.appendChild(tr);
+        });
+
+        const totalRow = document.createElement('tr');
+        totalRow.className = 'bg-gray-50 font-bold';
+        let totalCells = `<td class="py-4 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Total Score</td>`;
+        Object.keys(totals).forEach(key => {
+            totalCells += `<td class="px-3 py-4 text-sm text-center text-gray-900">${totals[key]}</td>`;
+        });
+        totalRow.innerHTML = totalCells;
+        tbody.appendChild(totalRow);
+    }
+    
+    const criterionButtons = document.querySelectorAll('.criterion-btn');
+    criterionButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            criterionButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderComparisonContent(button.dataset.criterion);
+        });
+    });
+
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('main section');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 70) {
+                current = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href').includes(current)) {
+                link.classList.add('active');
+            }
+        });
+    });
+
+    renderOverviewChart();
+    renderComparisonContent('stability');
+    renderDeepDiveContent();
+    renderDecisionMatrix();
+});
+</script>
+
+</body>
+</html>
